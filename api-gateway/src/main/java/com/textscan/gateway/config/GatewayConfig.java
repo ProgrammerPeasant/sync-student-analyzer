@@ -1,0 +1,22 @@
+package com.textscan.gateway.config;
+
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class GatewayConfig {
+
+    @Bean
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+        return builder.routes()
+                .route("file-storage-service", r -> r
+                        .path("/api/files/**")
+                        .uri("lb://file-storage-service"))
+                .route("file-analysis-service", r -> r
+                        .path("/api/analysis/**")
+                        .uri("lb://file-analysis-service"))
+                .build();
+    }
+}

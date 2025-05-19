@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  eureka-server:
+#    build: ./eureka-server
+    build:
+      context: .
+      dockerfile: ./eureka-server/Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - textscan-network
+  postgres-files:
+    image: postgres:15
+    container_name: postgres-files
+    environment:
+      POSTGRES_DB: textscan_files
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-files-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - textscan-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-analysis:
+    image: postgres:15
+    container_name: postgres-analysis
+    environment:
+      POSTGRES_DB: textscan_analysis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-analysis-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - textscan-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./api-gateway/Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+    networks:
+      - textscan-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  file-storage-service:
+    build:
+      context: .
+      dockerfile: ./file-storage-service/Dockerfile
+    container_name: file-storage-service
+    depends_on:
+      eureka-server:
+        condition: service_started
+      postgres-files:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-files:5432/textscan_files
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - textscan-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  file-analysis-service:
+    build:
+      context: .
+      dockerfile: ./file-analysis-service/Dockerfile
+    container_name: file-analysis-service
+    depends_on:
+      eureka-server:
+        condition: service_started
+      postgres-analysis:
+        condition: service_healthy
+      file-storage-service:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-analysis:5432/textscan_analysis
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    networks:
+      - textscan-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  textscan-network:
+    driver: bridge
+
+volumes:
+  postgres-files-data:
+  postgres-analysis-data:
