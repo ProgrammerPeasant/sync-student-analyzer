@@ -12,10 +12,10 @@ public class GatewayConfig {
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("file-storage-service", r -> r
-                        .path("/api/files/**")
+                        .path("/api/files/**", "/swagger-ui/**", "/v3/api-docs/**")
                         .uri("lb://file-storage-service"))
                 .route("file-analysis-service", r -> r
-                        .path("/api/analysis/**")
+                        .path("/api/analysis/**", "/swagger-ui/**", "/v3/api-docs/**")
                         .uri("lb://file-analysis-service"))
                 .build();
     }
