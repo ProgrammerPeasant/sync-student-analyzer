@@ -1,7 +1,7 @@
-FROM eclipse-temurin:21-jdk as builder
+FROM gradle:8.5-jdk21 as builder
 WORKDIR /app
 COPY . .
-RUN ./gradlew :api-gateway:bootJar --no-daemon
+RUN gradle :api-gateway:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app

@@ -6,8 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -30,7 +32,8 @@ public class FileEntity {
     private String contentType;
 
     @Lob
-    @Column(columnDefinition = "bytea", nullable = false)
+    @Column(nullable = false)
+    @JdbcTypeCode(Types.VARBINARY)
     private byte[] content;
 
     @Column(nullable = false)

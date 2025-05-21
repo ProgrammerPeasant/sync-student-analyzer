@@ -1,5 +1,6 @@
 server:
   port: 8081
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -31,8 +32,30 @@ eureka:
   instance:
     prefer-ip-address: true
 
+#springdoc:
+#  api-docs:
+#    path: /v3/api-docs/file-storage-service
+#  swagger-ui:
+#    path: /swagger-ui.html
+#
 springdoc:
   api-docs:
-    path: /v3/api-docs/file-storage-service
+    enabled: true
+    # path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    enabled: true # Убедимся, что включено
+    # path: /swagger-ui.html # Это путь по умолчанию, можно не указывать или указать явно
+    # url: /v3/api-docs      # Swagger UI будет искать спецификацию по этому пути (относительно корня UI)
+
+logging:
+  level:
+    root: INFO # Общий уровень INFO
+    # org.springframework.web: DEBUG # Очень важно для отслеживания запросов в MVC
+    org.springframework.boot.autoconfigure.web.servlet. standaardErrorHandler: DEBUG # Чтобы видеть, как обрабатываются ошибки
+    # org.springdoc: DEBUG # Логи от SpringDoc
+    # Если используешь Tomcat как встроенный сервер (по умолчанию для Spring MVC):
+    # org.apache.coyote.http11: DEBUG # Низкоуровневые логи HTTP
+    org.apache.catalina: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    org.hibernate.orm.jdbc.bind: TRACE

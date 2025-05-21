@@ -1,5 +1,6 @@
 server:
   port: 8080
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -28,11 +29,18 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     urls:
-      - name: file-storage-service
-        url: /v3/api-docs/file-storage-service
-      - name: file-analysis-service
-        url: /v3/api-docs/file-analysis-service
 #      - name: file-storage-service
-#        url: /file-storage-service/v3/api-docs/file-storage-service
+#        url: /v3/api-docs/file-storage-service
 #      - name: file-analysis-service
-#        url: /file-analysis-service/v3/api-docs/file-analysis-service
+#        url: /v3/api-docs/file-analysis-service
+      - name: file-storage-service
+        url: /file-storage-service/v3/api-docs
+      - name: file-analysis-service
+        url: /file-analysis-service/v3/api-docs
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springdoc: DEBUG
+    reactor.netty.http.server: DEBUG # Для низкоуровневых логов HTTP
+    org.springframework.web.reactive.DispatcherHandler: DEBUG
+    org.springframework.web.server. российских: DEBUG

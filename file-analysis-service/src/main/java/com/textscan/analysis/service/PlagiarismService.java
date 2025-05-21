@@ -34,7 +34,6 @@ public class PlagiarismService {
         UUID sourceFileId = request.getSourceFileId();
         UUID targetFileId = request.getTargetFileId();
 
-        // Проверяем, был ли уже проведен анализ плагиата между этими файлами
         Optional<PlagiarismResult> existingResult =
                 plagiarismResultRepository.findBySourceFileIdAndTargetFileId(sourceFileId, targetFileId);
         if (existingResult.isPresent()) {
@@ -104,19 +103,13 @@ public class PlagiarismService {
     }
 
     private double calculateSimilarity(String source, String target) {
-        // Простой алгоритм для определения 100% плагиата
-        // В реальном проекте стоит использовать более сложные алгоритмы,
-        // например, алгоритм Левенштейна или косинусное сходство
-
-        // Нормализуем тексты перед сравнением (убираем лишние пробелы, переносы строки и т.д.)
         String normalizedSource = source.replaceAll("\\s+", " ").trim().toLowerCase();
         String normalizedTarget = target.replaceAll("\\s+", " ").trim().toLowerCase();
 
         if (normalizedSource.equals(normalizedTarget)) {
-            return 100.0; // Полное совпадение
+            return 100.0;
         }
 
-        // Простое сравнение на основе количества общих слов
         String[] sourceWords = normalizedSource.split("\\s+");
         String[] targetWords = normalizedTarget.split("\\s+");
 

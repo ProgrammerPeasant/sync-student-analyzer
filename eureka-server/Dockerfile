@@ -1,8 +1,8 @@
-FROM eclipse-temurin:21-jdk AS builder
+FROM gradle:8.5-jdk21 AS builder
 WORKDIR /app
 COPY . .
 
-RUN ./gradlew :eureka-server:bootJar --no-daemon
+RUN gradle :eureka-server:bootJar --no-daemon
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app

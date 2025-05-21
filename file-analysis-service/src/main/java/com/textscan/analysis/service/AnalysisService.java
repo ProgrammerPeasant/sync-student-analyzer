@@ -18,6 +18,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +31,6 @@ public class AnalysisService {
 
     private final FileStorageClient fileStorageClient;
     private final AnalysisResultRepository analysisResultRepository;
-    private final WebClient webClient;
 
     public AnalysisResultDto analyzeFile(UUID fileId) {
         try {
@@ -52,7 +54,8 @@ public class AnalysisService {
             int wordCount = countWords(content);
             int characterCount = countCharacters(content);
 
-            String wordCloudUrl = generateWordCloud(content);
+            //String wordCloudUrl = generateWordCloud(content);
+            String wordCloudUrl = generateWordCloudUrlUsingFrequencies(content);
 
             AnalysisResult result = AnalysisResult.builder()
                     .fileId(fileId)
@@ -118,21 +121,13 @@ public class AnalysisService {
                 .count();
     }
 
-    private String generateWordCloud(String content) {
-
-        Map<String, Integer> wordFrequency = calculateWordFrequency(content);
-
-        return "https://quickchart.io/wordcloud?text=" +
-                String.join(" ", Collections.nCopies(20, content.substring(0, Math.min(content.length(), 500))));
-    }
-
     private Map<String, Integer> calculateWordFrequency(String content) {
         Map<String, Integer> wordFrequency = new HashMap<>();
         String[] words = content.toLowerCase().split("\\s+|\\p{Punct}");
 
         for (String word : words) {
             word = word.trim();
-            if (!word.isEmpty() && word.length() > 2) {  // я решил длиннее 2 букв
+            if (word.length() > 2) {  // я решил длиннее 2 букв
                 wordFrequency.put(word, wordFrequency.getOrDefault(word, 0) + 1);
             }
         }
@@ -159,5 +154,66 @@ public class AnalysisService {
             return contentDisposition.split("filename=\"")[1].split("\"")[0];
         }
         return "unknown-file";
+    }
+
+    private String generateWordCloudUrlUsingFrequencies(String content) {
+        Map<String, Integer> wordFrequency = calculateWordFrequency(content);
+
+        if (wordFrequency.isEmpty()) {
+            return "";
+        }
+
+        List<Map.Entry<String, Integer>> sortedWords = new ArrayList<>(wordFrequency.entrySet());
+        sortedWords.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
+
+        StringBuilder textParamBuilder = new StringBuilder();
+        int currentLength = 0;
+        final int MAX_TEXT_PARAM_LENGTH = 750;
+        final int MAX_REPETITIONS_PER_WORD = 10;
+
+        for (Map.Entry<String, Integer> entry : sortedWords) {
+            String word = entry.getKey();
+            int frequency = entry.getValue();
+            int repetitions = Math.min(frequency, MAX_REPETITIONS_PER_WORD);
+
+            for (int i = 0; i < repetitions; i++) {
+                if (currentLength + word.length() + 1 > MAX_TEXT_PARAM_LENGTH) {
+                    break;
+                }
+                if (!textParamBuilder.isEmpty()) {
+                    textParamBuilder.append(" ");
+                    currentLength++;
+                }
+                textParamBuilder.append(word);
+                currentLength += word.length();
+            }
+
+            if (currentLength >= MAX_TEXT_PARAM_LENGTH) {
+                break;
+            }
+        }
+
+        if (textParamBuilder.isEmpty()) {
+            if (!sortedWords.isEmpty()) {
+                String firstWord = sortedWords.get(0).getKey();
+                if (firstWord.length() < MAX_TEXT_PARAM_LENGTH) {
+                    textParamBuilder.append(firstWord);
+                } else {
+                    return "";
+                }
+            } else {
+                return "";
+            }
+        }
+
+        String encodedText = URLEncoder.encode(textParamBuilder.toString(), StandardCharsets.UTF_8);
+        String baseUrl = "https://quickchart.io/wordcloud?text=";
+        String finalUrl = baseUrl + encodedText;
+
+        if (finalUrl.length() > 1023) {
+            System.err.println("WARN: Generated word cloud URL is too long after encoding: " + finalUrl.length());
+        }
+        return finalUrl;
+
     }
 }

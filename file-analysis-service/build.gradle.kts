@@ -5,4 +5,6 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    //implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 }

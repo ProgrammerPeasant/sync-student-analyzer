@@ -3,6 +3,8 @@ package com.textscan.storage.controller;
 import com.textscan.storage.dto.FileDto;
 import com.textscan.storage.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,9 +28,12 @@ public class FileController {
 
     private final FileStorageService fileStorageService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Загрузить файл", description = "Загружает файл в хранилище")
-    @ApiResponse(responseCode = "200", description = "Файл успешно загружен")
+    @ApiResponse(responseCode = "200", description = "Файл успешно загружен",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = FileDto.class)))
+    @ApiResponse(responseCode = "400", description = "Неверный запрос (например, файл не предоставлен)")
     public ResponseEntity<FileDto> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         FileDto fileDto = fileStorageService.storeFile(file);
         return ResponseEntity.ok(fileDto);
