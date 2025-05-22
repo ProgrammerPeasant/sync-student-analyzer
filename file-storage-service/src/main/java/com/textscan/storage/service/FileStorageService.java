@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -18,26 +21,62 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class FileStorageService {
+    static final String NOT_FOUND_WITH_ID = "File not found with id: ";
 
     private final FileRepository fileRepository;
 
     public FileDto storeFile(MultipartFile file) throws IOException {
-        FileEntity fileEntity = FileEntity.builder()
-                .fileName(file.getOriginalFilename())
-                .contentType(file.getContentType())
-                .content(file.getBytes())
-                .size(file.getSize())
-                .build();
+        if (file.isEmpty() || file.getSize() == 0) {
+            log.warn("Attempted to store an empty file: {}", file.getOriginalFilename());
+            throw new IOException("Cannot store an empty file.");
+        }
 
-        FileEntity savedFile = fileRepository.save(fileEntity);
-        log.info("File stored: {}", savedFile.getFileName());
+        String fileHash;
+        try {
+            fileHash = calculateFileHash(file.getBytes());
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Error calculating file hash: {}", e.getMessage());
+            throw new IOException("Failed to calculate file hash.", e);
+        }
 
-        return convertToDto(savedFile);
+        Optional<FileEntity> existingFile = fileRepository.findByFileHash(fileHash);
+
+        if (existingFile.isPresent()) {
+            log.info("File with hash {} already exists. Returning existing file: {}", fileHash, existingFile.get().getFileName());
+            return convertToDto(existingFile.get());
+        } else {
+            FileEntity fileEntity = FileEntity.builder()
+                    .fileName(file.getOriginalFilename())
+                    .contentType(file.getContentType())
+                    .content(file.getBytes())
+                    .size(file.getSize())
+                    .fileHash(fileHash)
+                    .build();
+
+            FileEntity savedFile = fileRepository.save(fileEntity);
+            log.info("New file stored: {} with hash {}", savedFile.getFileName(), fileHash);
+
+            return convertToDto(savedFile);
+        }
+    }
+
+    private String calculateFileHash(byte[] fileContent) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = digest.digest(fileContent);
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hashBytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     public FileDto getFile(UUID id) {
         FileEntity fileEntity = fileRepository.findById(id)
-                .orElseThrow(() -> new FileNotFoundException("File not found with id: " + id));
+                .orElseThrow(() -> new FileNotFoundException(NOT_FOUND_WITH_ID + id));
         return convertToDto(fileEntity);
     }
 
@@ -49,13 +88,13 @@ public class FileStorageService {
 
     public byte[] getFileContent(UUID id) {
         FileEntity fileEntity = fileRepository.findById(id)
-                .orElseThrow(() -> new FileNotFoundException("File not found with id: " + id));
+                .orElseThrow(() -> new FileNotFoundException(NOT_FOUND_WITH_ID + id));
         return fileEntity.getContent();
     }
 
     public void deleteFile(UUID id) {
         if (!fileRepository.existsById(id)) {
-            throw new FileNotFoundException("File not found with id: " + id);
+            throw new FileNotFoundException(NOT_FOUND_WITH_ID + id);
         }
         fileRepository.deleteById(id);
         log.info("File deleted: {}", id);

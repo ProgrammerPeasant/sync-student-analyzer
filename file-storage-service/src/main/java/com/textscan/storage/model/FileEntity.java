@@ -44,4 +44,7 @@ public class FileEntity {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false, unique = true, length = 64)
+    private String fileHash;
 }
