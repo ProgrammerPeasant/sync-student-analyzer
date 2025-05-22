@@ -41,6 +41,6 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springdoc: DEBUG
-    reactor.netty.http.server: DEBUG # Для низкоуровневых логов HTTP
+    reactor.netty.http.server: DEBUG
     org.springframework.web.reactive.DispatcherHandler: DEBUG
     org.springframework.web.server. российских: DEBUG
