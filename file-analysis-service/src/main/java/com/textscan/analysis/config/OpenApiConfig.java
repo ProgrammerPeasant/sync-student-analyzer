@@ -12,7 +12,6 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("File Analysis Service API")
-                        .description("API для анализа текстовых файлов и проверки на плагиат")
-                        .version("1.0"));
+                        .description("API для анализа текстовых файлов и проверки на плагиат"));
     }
 }

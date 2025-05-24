@@ -11,6 +11,8 @@ public class OpenApiConfig {
     @Bean
     public OpenAPI fileStorageOpenAPI() {
         return new OpenAPI()
-                .info(new Info());
+                .info(new Info()
+                        .title("File Storage Service API")
+                        .description("API для сохранения файлов и управления ими"));
     }
 }
