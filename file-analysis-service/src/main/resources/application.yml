@@ -28,19 +28,11 @@ eureka:
   instance:
     prefer-ip-address: true
 
-#springdoc:
-#  api-docs:
-#    path: /v3/api-docs
-#  swagger-ui:
-#    path: /swagger-ui.html
 springdoc:
   api-docs:
-    enabled: true # Убедимся, что включено
-    # path: /v3/api-docs    # Это путь по умолчанию, можно не указывать или указать явно
+    enabled: true
   swagger-ui:
-    enabled: true # Убедимся, что включено
-    # path: /swagger-ui.html # Это путь по умолчанию, можно не указывать или указать явно
-    # url: /v3/api-docs      # Swagger UI будет искать спецификацию по этому пути (относительно корня UI)
+    enabled: true
 
 feign:
   client:
