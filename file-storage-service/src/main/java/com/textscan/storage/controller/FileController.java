@@ -33,7 +33,7 @@ public class FileController {
     @ApiResponse(responseCode = "200", description = "Файл успешно загружен",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = FileDto.class)))
-    @ApiResponse(responseCode = "400", description = "Неверный запрос (например, файл не предоставлен)")
+    @ApiResponse(responseCode = "400", description = "Неверный запрос")
     public ResponseEntity<FileDto> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         FileDto fileDto = fileStorageService.storeFile(file);
         return ResponseEntity.ok(fileDto);
