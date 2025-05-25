@@ -46,6 +46,8 @@ public class AnalysisService {
                 throw new ResourceNotFoundException("File not found with id: " + fileId);
             }
 
+            log.info("Headers from storage-service: {}", response.getHeaders());
+
             String fileName = extractFileName(response);
 
             String content = readFileContent(fileResource);
@@ -54,7 +56,6 @@ public class AnalysisService {
             int wordCount = countWords(content);
             int characterCount = countCharacters(content);
 
-            //String wordCloudUrl = generateWordCloud(content);
             String wordCloudUrl = generateWordCloudUrlUsingFrequencies(content);
 
             AnalysisResult result = AnalysisResult.builder()

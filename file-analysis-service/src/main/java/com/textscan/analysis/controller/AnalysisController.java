@@ -29,7 +29,7 @@ public class AnalysisController {
     }
 
     @GetMapping("/files/{fileId}")
-    @Operation(summary = "Получить результат анализа", description = "Возвращает результат анализа файла по ID")
+    @Operation(summary = "Получить результат анализа", description = "Возвращает результат анализа файла по ID файла")
     public ResponseEntity<AnalysisResultDto> getAnalysisResult(@PathVariable UUID fileId) {
         AnalysisResultDto result = analysisService.getAnalysisResult(fileId);
         return ResponseEntity.ok(result);
