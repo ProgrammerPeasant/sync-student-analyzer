@@ -212,7 +212,7 @@ public class AnalysisService {
         String finalUrl = baseUrl + encodedText;
 
         if (finalUrl.length() > 1023) {
-            System.err.println("WARN: Generated word cloud URL is too long after encoding: " + finalUrl.length());
+            System.err.println("Сгенерированная ссылка слишком длинная: " + finalUrl.length());
         }
         return finalUrl;
 
